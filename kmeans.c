@@ -1,5 +1,7 @@
+
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+
 # include <stdio.h>
 # include <string.h>
 # include <stdlib.h>
@@ -261,7 +263,7 @@ double** K_means(int K, int max_iter, double epsilon, char* tmp_combined_inputs,
      */
     double ** data;
     double** centroids;
-    int idx, arg_min, counter,iter,point,cluster_ind, r, k, c, rows, cols, rows_pp,cols_pp, f1, f2, f3, f4;
+    int idx, arg_min, counter,iter,point,cluster_ind, r, k, c, rows, cols, rows_pp,cols_pp, f2, f3, f4;
     double min_dist, dist_point_cluster;
     double** cluster_sum;
     double** old_centroids;
@@ -285,7 +287,7 @@ double** K_means(int K, int max_iter, double epsilon, char* tmp_combined_inputs,
     /* Read initial centroids from kmeans_pp */
     rows_pp = countLines(tmp_initial_centroids);
     cols_pp = countCols(tmp_initial_centroids);
-    centroids = calloc(rows_pp, sizeof(int));
+    centroids = calloc(rows_pp, sizeof(double));
     if(centroids==NULL){
         print_error_and_exit();
     }
@@ -346,6 +348,7 @@ double** K_means(int K, int max_iter, double epsilon, char* tmp_combined_inputs,
             if(cluster_change[k]<epsilon){
                 counter += 1;
             }
+            free(tmp_vec);
         }
         /* check if all coordinates changes are less than epsilon*/
         if(counter == K){
@@ -359,9 +362,7 @@ double** K_means(int K, int max_iter, double epsilon, char* tmp_combined_inputs,
 
     /* free matrices */
 
-    /*
-    f1 = free_helper(centroids, K);
-    */
+
     f2 = free_helper(data,rows);
     if (max_iter>0){
         f3 = free_helper(old_centroids, K);
@@ -370,7 +371,7 @@ double** K_means(int K, int max_iter, double epsilon, char* tmp_combined_inputs,
         free(points_clusters);
         free(cluster_change);
         free(cluster_counter);
-        free(tmp_vec);
+
     } else {
         f3 = 0;
         f4 = 0;
@@ -381,21 +382,27 @@ double** K_means(int K, int max_iter, double epsilon, char* tmp_combined_inputs,
     return centroids;
 }
 
-static PyObject* fit(PyObject *self, PyObject *args){
-    int K, max_iter;
-    double epsilon;
-    char* tmp_combined_inputs, tmp_initial_centroids;
 
-    if (!PyArg_ParseTuple(args,"iidss",&K, &max_iter, &epsilon, &tmp_combined_inputs,&tmp_initial_centroids)){
+static PyObject* fit_capi(PyObject *self, PyObject *args){
+    int k;
+    int max_iter;
+    double epsilon;
+    char* tmp_combined_inputs;
+    char* tmp_initial_centroids;
+
+    if (!PyArg_ParseTuple(args,"iidss",&k, &max_iter, &epsilon, &tmp_combined_inputs, &tmp_initial_centroids)){
         return NULL;
     }
-    return Py_BuildValue("O", K_means(K,max_iter,epsilon,tmp_combined_inputs,tmp_initial_centroids));
+    return Py_BuildValue("O", K_means(k, max_iter, epsilon, tmp_combined_inputs, tmp_initial_centroids));
 }
 
 static PyMethodDef capiMethods[] = {
-        {"fit", (PyCFunction) fit, METH_VARARGS, PyDoc_STR("Trains kmeans model")},
-        {NULL,NULL,0,NULL}
-}
+        {"fit",
+         (PyCFunction) fit_capi,
+         METH_VARARGS,
+         PyDoc_STR("Trains kmeans model")},
+         {NULL,NULL,0,NULL}
+};
 
 static struct PyModuleDef moduledef= {
         PyModuleDef_HEAD_INIT,
@@ -405,8 +412,7 @@ static struct PyModuleDef moduledef= {
         capiMethods
 };
 
-PyMODINIT_FUNC
-PyInit_mykmeanssp(void)
+PyMODINIT_FUNC PyInit_mykmeanssp(void)
 {
     PyObject *m;
     m = PyModule_Create(&moduledef);
@@ -418,11 +424,23 @@ PyInit_mykmeanssp(void)
 
 
 double** fit(int K, int max_iter, double epsilon, char* tmp_combined_inputs, char* tmp_initial_centroids) {
-
-    double** result;
-
-
-    result = K_means(K, max_iter,epsilon,tmp_combined_inputs,tmp_initial_centroids);
-    /* return result; */
+    double** result = K_means(K, max_iter,epsilon,tmp_combined_inputs,tmp_initial_centroids);
+    return result;
 
 }
+
+/*
+int main(int argc, char * argv[]) {
+
+    double** c = buildMatrix(1,2) ;
+    write_output("fit.txt",1,2,c);
+
+    double** result;
+    char* combined =  "C:\\Users\\Omri\\Desktop\\CS_Omri\\Second_Year\\SW_Project\\EX_2\\Kmeans_pp_cpython\\tmp_combined_inputs.txt";
+    char* initial = "C:\\Users\\Omri\\Desktop\\CS_Omri\\Second_Year\\SW_Project\\EX_2\\Kmeans_pp_cpython\\tmp_initial_centroids.txt";
+
+    result = K_means(3, 100,0.01,combined,initial);
+    printMatrix(result,3,4);
+    return 0;
+}
+*/

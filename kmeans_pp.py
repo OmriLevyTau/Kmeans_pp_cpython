@@ -1,8 +1,11 @@
+import os
+import os.path
 import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from typing import List
+import mykmeanssp
 
 np.random.seed(0)
 
@@ -71,16 +74,16 @@ def validate_input_args(argv: List[str]) -> bool:
 
 def get_args(argv: List[str]):
     if len(argv) == 6:
-        k, max_iter, eps, file_name_1, file_name_2 = int(argv[1]), int(argv[2]), argv[3], argv[4], argv[5]
+        k, max_iter, eps, file_name_1, file_name_2 = int(argv[1]), int(argv[2]), float(argv[3]), argv[4], argv[5]
     else:
-        k, max_iter, eps, file_name_1, file_name_2 = int(argv[1]), 300, argv[2], argv[3], argv[4]
+        k, max_iter, eps, file_name_1, file_name_2 = int(argv[1]), 300, float(argv[2]), argv[3], argv[4]
     return k, max_iter, eps, file_name_1, file_name_2
 
 
 def write_output(input_text, output_filename: str):
     with open(output_filename, "w") as file:
         for line in input_text:
-            line_data = make_string(input_text)
+            line_data = make_string(line)
             file.writelines(line_data)
             file.write("\n")
 
@@ -100,10 +103,12 @@ def main():
     else:
         k, max_iter, eps, file_name_1, file_name_2 = get_args(argv)
         combined_inputs = read_data(file_name_1, file_name_2)
-        initial_centroids, initial_centroids_indices = initialize_centroids(combined_inputs, k)
-        write_output(initial_centroids, "tmp_initial_centroids.txt")
+        initial_centroids, initial_centroids_indices = initialize_centroids(combined_inputs.tolist(), k)
+        write_output(initial_centroids.tolist(), "tmp_initial_centroids.txt")
         write_output(combined_inputs, "tmp_combined_inputs.txt")
-
+        combined_path = os.path.join(os.getcwd(), "tmp_combined_inputs" + "." + "txt")
+        initial_path = os.path.join(os.getcwd(), "tmp_initial_centroids" + "." + "txt")
+        print(mykmeanssp.fit(k, max_iter, eps, combined_path, initial_path))
 
 if __name__ == "__main__":
     main()
