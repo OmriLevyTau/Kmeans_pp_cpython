@@ -62,11 +62,14 @@ def validate_input_args(argv: List[str]) -> bool:
         return True
 
     try:
-        k, max_iter, eps = float(k), float(max_iter), float(eps)
+        if ("." in k) or ("." in max_iter):
+            return True
+        else:
+            k, max_iter, eps = int(k), int(max_iter), float(eps)
     except:
         return True
 
-    if k != int(k) or max_iter != int(max_iter) or k <= 1 or max_iter < 1 or eps < 0:
+    if k < 1 or max_iter < 1 or eps < 0:
         return True
     return False
 
