@@ -70,6 +70,12 @@ def validate_input_args(argv: List[str]) -> bool:
         return True
     return False
 
+def valid_k_vs_length(combined_inputs,k):
+    N = len(combined_inputs)
+    if k>N:
+        return False
+    return True
+
 
 def get_args(argv: List[str]):
     if len(argv) == 6:
@@ -94,29 +100,40 @@ def make_string(centroid: List['float']):
         st = st + tmp + ","
     return st[:len(st) - 1]
 
+def clear_tmp_files():
+    if os.path.exists("tmp_initial_centroids.txt"):
+        os.remove("tmp_initial_centroids.txt")
+    if os.path.exists("tmp_combined_inputs.txt"):
+        os.remove("tmp_combined_inputs.txt")
 
-
+def print_output(centroids,initial_centroids_indices):
+    st = ""
+    for centroid in centroids:
+        st += make_string(centroid) + "\n";
+    result = ','.join(str(ind) for ind in initial_centroids_indices)
+    print(result + "\n" + st);
 
 def main():
     argv = sys.argv
     if validate_input_args(argv):
         print("Invalid Input!")
     else:
-        k, max_iter, eps, file_name_1, file_name_2 = get_args(argv)
-        combined_inputs = read_data(file_name_1, file_name_2)
-        initial_centroids, initial_centroids_indices = initialize_centroids(combined_inputs.tolist(), k)
-        write_output(initial_centroids.tolist(), "tmp_initial_centroids.txt")
-        write_output(combined_inputs, "tmp_combined_inputs.txt")
-        combined_path = os.path.join(os.getcwd(), "tmp_combined_inputs" + "." + "txt")
-        initial_path = os.path.join(os.getcwd(), "tmp_initial_centroids" + "." + "txt")
-        centroids = mykmeanssp.fit(k, max_iter, eps, combined_path, initial_path)
-        st = ""
-        for centroid in centroids:
-            st += make_string(centroid) + "\n";
-        result = ','.join(str(ind) for ind in initial_centroids_indices)
-        print(result + "\n" + st);
-        # TODO
-        ## Delete tmp files
+        try:
+            k, max_iter, eps, file_name_1, file_name_2 = get_args(argv)
+            combined_inputs = read_data(file_name_1, file_name_2)
+            if not valid_k_vs_length(combined_inputs,k):
+                print("Invalid Input!")
+            else:
+                initial_centroids, initial_centroids_indices = initialize_centroids(combined_inputs.tolist(), k)
+                write_output(initial_centroids.tolist(), "tmp_initial_centroids.txt")
+                write_output(combined_inputs, "tmp_combined_inputs.txt")
+                combined_path = os.path.join(os.getcwd(), "tmp_combined_inputs" + "." + "txt")
+                initial_path = os.path.join(os.getcwd(), "tmp_initial_centroids" + "." + "txt")
+                centroids = mykmeanssp.fit(k, max_iter, eps, combined_path, initial_path)
+                clear_tmp_files()
+                print_output(centroids, initial_centroids_indices)
+        except:
+            print("An Error Has Occurred")
 
 if __name__ == "__main__":
     main()

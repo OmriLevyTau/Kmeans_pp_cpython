@@ -263,12 +263,13 @@ double** K_means(int K, int max_iter, double epsilon, char* tmp_combined_inputs,
      */
     double ** data;
     double** centroids;
-    int idx, arg_min, counter,iter,point,cluster_ind, r, k, c, rows, cols, rows_pp,cols_pp, f2, f3, f4;
+    int idx, arg_min, counter,iter,point,cluster_ind, r, k, c, rows, cols, rows_pp,cols_pp, f1;
     double min_dist, dist_point_cluster;
     double** cluster_sum;
     double** old_centroids;
     double* cluster;
     double* tmp_arr;
+    double* tmp_pointer;
     int* points_clusters;
     double* cluster_change;
     int* cluster_counter;
@@ -287,10 +288,12 @@ double** K_means(int K, int max_iter, double epsilon, char* tmp_combined_inputs,
     /* Read initial centroids from kmeans_pp */
     rows_pp = countLines(tmp_initial_centroids);
     cols_pp = countCols(tmp_initial_centroids);
+    /*
     centroids = calloc(rows_pp, sizeof(int));
     if(centroids==NULL){
         print_error_and_exit();
     }
+     */
     centroids = createMatrix(rows_pp,cols_pp,tmp_initial_centroids);
 
     /* Train Model */
@@ -308,6 +311,7 @@ double** K_means(int K, int max_iter, double epsilon, char* tmp_combined_inputs,
                     min_dist = dist_point_cluster;
                     arg_min = cluster_ind;
                 }
+                free(tmp_arr);
             }
             points_clusters[point] = arg_min;
         }
@@ -330,7 +334,9 @@ double** K_means(int K, int max_iter, double epsilon, char* tmp_combined_inputs,
         for(r=0; r<rows; r++){
             idx = points_clusters[r];
             cluster_counter[idx] += 1;
+            tmp_pointer = cluster_sum[idx];
             cluster_sum[idx] = add_vectors(cluster_sum[idx], data[r], cols);
+            free(tmp_pointer);
         }
 
         /* update centroids */
@@ -350,33 +356,21 @@ double** K_means(int K, int max_iter, double epsilon, char* tmp_combined_inputs,
             }
             free(tmp_vec);
         }
+        free(cluster_change);
+        free(cluster_counter);
+        free_helper(old_centroids, K);
+        free_helper(cluster_sum, K);
+
         /* check if all coordinates changes are less than epsilon*/
         if(counter == K){
             break;
         }
     }
 
-    /*
-    write_output(output_filename, K, cols, centroids);
-    */
-
     /* free matrices */
-
-
-    f2 = free_helper(data,rows);
-    if (max_iter>0){
-        f3 = free_helper(old_centroids, K);
-        f4 = free_helper(cluster_sum, K);
-        /* free arrays */
-        free(points_clusters);
-        free(cluster_change);
-        free(cluster_counter);
-
-    } else {
-        f3 = 0;
-        f4 = 0;
-    }
-    if ((f2+f3+f4)>0){
+    f1 = free_helper(data,rows);
+    free(points_clusters);
+    if (f1>0){
         print_error_and_exit();
     }
     return centroids;
