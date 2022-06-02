@@ -62,14 +62,11 @@ def validate_input_args(argv: List[str]) -> bool:
         return True
 
     try:
-        if ("." in k) or ("." in max_iter):
-            return True
-        else:
-            k, max_iter, eps = int(k), int(max_iter), float(eps)
+        k, max_iter, eps = float(k), float(max_iter), float(eps)
     except:
         return True
 
-    if k < 1 or max_iter < 1 or eps < 0:
+    if k != int(k) or max_iter != int(max_iter) or k <= 1 or max_iter < 1 or eps < 0:
         return True
     return False
 
@@ -82,9 +79,9 @@ def valid_k_vs_length(combined_inputs,k):
 
 def get_args(argv: List[str]):
     if len(argv) == 6:
-        k, max_iter, eps, file_name_1, file_name_2 = int(argv[1]), int(argv[2]), float(argv[3]), argv[4], argv[5]
+        k, max_iter, eps, file_name_1, file_name_2 = int(float(argv[1])), int(float(argv[2])), float(argv[3]), argv[4], argv[5]
     else:
-        k, max_iter, eps, file_name_1, file_name_2 = int(argv[1]), 300, float(argv[2]), argv[3], argv[4]
+        k, max_iter, eps, file_name_1, file_name_2 = int(float(argv[1])), 300, float(argv[2]), argv[3], argv[4]
     return k, max_iter, eps, file_name_1, file_name_2
 
 
