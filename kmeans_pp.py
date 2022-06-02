@@ -22,7 +22,6 @@ def initialize_centroids(S, k):
             D[l] = (np.linalg.norm(S[l] - centroids, axis=1) ** 2).min()
         D_SUM = D.sum()
         Prob = D / D_SUM
-        #         print(Prob)
         next_mu_index = np.random.choice(np.arange(N), p=Prob)
         centroids = np.append(centroids, [S[next_mu_index]], axis=0)
         indices.append(next_mu_index)
@@ -96,6 +95,8 @@ def make_string(centroid: List['float']):
     return st[:len(st) - 1]
 
 
+
+
 def main():
     argv = sys.argv
     if validate_input_args(argv):
@@ -108,7 +109,14 @@ def main():
         write_output(combined_inputs, "tmp_combined_inputs.txt")
         combined_path = os.path.join(os.getcwd(), "tmp_combined_inputs" + "." + "txt")
         initial_path = os.path.join(os.getcwd(), "tmp_initial_centroids" + "." + "txt")
-        print(mykmeanssp.fit(k, max_iter, eps, combined_path, initial_path))
+        centroids = mykmeanssp.fit(k, max_iter, eps, combined_path, initial_path)
+        st = ""
+        for centroid in centroids:
+            st += make_string(centroid) + "\n";
+        result = ','.join(str(ind) for ind in initial_centroids_indices)
+        print(result + "\n" + st);
+        # TODO
+        ## Delete tmp files
 
 if __name__ == "__main__":
     main()
